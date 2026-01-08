@@ -48,8 +48,38 @@ if not queueEvent then
 	queueEvent.Parent = remotes
 end
 
+local matchEvent = remotes:FindFirstChild("MatchEvent")
+if not matchEvent then
+	matchEvent = Instance.new("RemoteEvent")
+	matchEvent.Name = "MatchEvent"
+	matchEvent.Parent = remotes
+end
+
 local ActiveMatches = {}
 local PlayerMatch = {}
+
+local function isBallInsideTrigger(trigger, ballPosition)
+	local localPos = trigger.CFrame:PointToObjectSpace(ballPosition)
+	local half = trigger.Size * 0.5
+	return math.abs(localPos.X) <= half.X
+		and math.abs(localPos.Y) <= half.Y
+		and math.abs(localPos.Z) <= half.Z
+end
+
+local function isBallStuck(match, now)
+	local ball = match.BallService.Ball
+	if not ball then
+		return false
+	end
+	local velocity = ball.AssemblyLinearVelocity.Magnitude
+	local lastPos = match.LastBallPosition
+	local moved = lastPos and (ball.Position - lastPos).Magnitude > 0.2
+	if velocity > 0.5 or moved then
+		match.LastBallMoveTime = now
+		return false
+	end
+	return (now - (match.LastBallMoveTime or now)) >= Config.Game.BallStuckSeconds
+end
 
 local function sendScore(match, matchOver)
 	for _, player in ipairs(match.Players) do
@@ -153,6 +183,10 @@ local function connectGoal(match, trigger)
 			return
 		end
 
+		if not isBallInsideTrigger(trigger, ball.Position) then
+			return
+		end
+
 		match.LastGoalTimeByHoop[trigger] = now
 		onGoalScored(match, teamKey)
 	end)
@@ -168,6 +202,7 @@ local function setupMatch(playersList)
 	match.GoalCooldownSeconds = 1.0
 	match.LastGoalTimeByHoop = {}
 	match.LastBallPosition = nil
+	match.LastBallMoveTime = os.clock()
 	match.BallService = BallService.new()
 	match.Arena = arenaService:CreateArena(workspace, match.Id)
 
@@ -182,6 +217,7 @@ local function setupMatch(playersList)
 	ActiveMatches[match.Id] = match
 	for _, player in ipairs(playersList) do
 		PlayerMatch[player.UserId] = match
+		matchEvent:FireClient(player, "MatchFound")
 	end
 	sendScore(match, false)
 end
@@ -245,6 +281,11 @@ RunService.Heartbeat:Connect(function(dt)
 		local ball = match.BallService.Ball
 		if ball then
 			match.LastBallPosition = ball.Position
+		end
+		local now = os.clock()
+		if isBallStuck(match, now) then
+			resetRound(match)
+			match.LastBallMoveTime = now
 		end
 	end
 end)

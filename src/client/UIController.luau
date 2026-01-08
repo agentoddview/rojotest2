@@ -1,6 +1,7 @@
 -- Basic UI controller placeholder
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local UIController = {}
 UIController.__index = UIController
@@ -44,6 +45,32 @@ function UIController:Init()
 	mutatorLabel.Text = "Mutator: None"
 	mutatorLabel.Parent = screenGui
 
+	local flashLabel = Instance.new("TextLabel")
+	flashLabel.Name = "ScoreFlash"
+	flashLabel.Size = UDim2.new(0, 220, 0, 60)
+	flashLabel.Position = UDim2.new(0.5, -110, 0, 130)
+	flashLabel.BackgroundTransparency = 1
+	flashLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	flashLabel.Font = Enum.Font.GothamBlack
+	flashLabel.TextScaled = true
+	flashLabel.Text = "+1"
+	flashLabel.TextTransparency = 1
+	flashLabel.Parent = screenGui
+
+	local matchLabel = Instance.new("TextLabel")
+	matchLabel.Name = "MatchBanner"
+	matchLabel.Size = UDim2.new(0, 360, 0, 60)
+	matchLabel.Position = UDim2.new(0.5, -180, 0, 180)
+	matchLabel.BackgroundTransparency = 0.2
+	matchLabel.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+	matchLabel.TextColor3 = Color3.fromRGB(255, 220, 120)
+	matchLabel.Font = Enum.Font.GothamBold
+	matchLabel.TextScaled = true
+	matchLabel.Text = "Match Over!"
+	matchLabel.TextTransparency = 1
+	matchLabel.BackgroundTransparency = 1
+	matchLabel.Parent = screenGui
+
 	self.ScoreEvent.OnClientEvent:Connect(function(score, mutator, matchOver)
 		if score then
 			scoreLabel.Text = tostring(score.A) .. " - " .. tostring(score.B)
@@ -54,7 +81,23 @@ function UIController:Init()
 			mutatorLabel.Text = "Mutator: None"
 		end
 		if matchOver then
-			mutatorLabel.Text = "Match Over!"
+			local show = TweenService:Create(matchLabel, TweenInfo.new(0.2), {
+				TextTransparency = 0,
+				BackgroundTransparency = 0.2,
+			})
+			local hide = TweenService:Create(matchLabel, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 1.2), {
+				TextTransparency = 1,
+				BackgroundTransparency = 1,
+			})
+			show:Play()
+			hide:Play()
+		else
+			local flashIn = TweenService:Create(flashLabel, TweenInfo.new(0.15), { TextTransparency = 0 })
+			local flashOut = TweenService:Create(flashLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.4), {
+				TextTransparency = 1,
+			})
+			flashIn:Play()
+			flashOut:Play()
 		end
 	end)
 end
