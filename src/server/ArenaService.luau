@@ -22,10 +22,10 @@ local function createPart(props)
 	return part
 end
 
-function ArenaService:CreateArena()
+function ArenaService:CreateArena(parent, arenaId)
 	local arena = Instance.new("Folder")
-	arena.Name = "Arena"
-	arena.Parent = workspace
+	arena.Name = "Arena_" .. (arenaId or tostring(os.clock()))
+	arena.Parent = parent or workspace
 
 	local floor = createPart({
 		Name = "Floor",
@@ -111,8 +111,14 @@ function ArenaService:CreateArena()
 	local goalB = createHoop(52, "B")
 
 	local spawns = {
-		TeamA = CFrame.new(-25, 6, Config.Physics2D.PlaneZ),
-		TeamB = CFrame.new(25, 6, Config.Physics2D.PlaneZ),
+		TeamA = {
+			CFrame.new(-30, 6, Config.Physics2D.PlaneZ),
+			CFrame.new(-20, 6, Config.Physics2D.PlaneZ),
+		},
+		TeamB = {
+			CFrame.new(30, 6, Config.Physics2D.PlaneZ),
+			CFrame.new(20, 6, Config.Physics2D.PlaneZ),
+		},
 		Ball = CFrame.new(0, 12, Config.Physics2D.PlaneZ),
 	}
 

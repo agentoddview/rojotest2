@@ -50,4 +50,30 @@ function CharacterService:RespawnPlayer(player, spawnCFrame)
 	end
 end
 
+function CharacterService:SetFrozen(player, frozen)
+	local character = player.Character
+	if not character then
+		return
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return
+	end
+	if frozen then
+		humanoid:SetAttribute("PrevWalkSpeed", humanoid.WalkSpeed)
+		humanoid:SetAttribute("PrevJumpPower", humanoid.JumpPower)
+		humanoid.WalkSpeed = 0
+		humanoid.JumpPower = 0
+	else
+		local prevWalkSpeed = humanoid:GetAttribute("PrevWalkSpeed")
+		local prevJumpPower = humanoid:GetAttribute("PrevJumpPower")
+		if typeof(prevWalkSpeed) == "number" then
+			humanoid.WalkSpeed = prevWalkSpeed
+		end
+		if typeof(prevJumpPower) == "number" then
+			humanoid.JumpPower = prevJumpPower
+		end
+	end
+end
+
 return CharacterService

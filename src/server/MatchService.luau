@@ -24,6 +24,7 @@ function MatchService:CreateMatch(players)
 		Score = { A = 0, B = 0 },
 		State = "Active",
 		Mutator = nil,
+		Teams = {},
 	}
 	self.ActiveMatches[match.Id] = match
 	self.MatchStarted:Fire(match)
